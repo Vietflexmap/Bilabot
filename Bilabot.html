@@ -4,7 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#050816">
-<meta name="description" content="Bilabot — CVNSS4.0 cognitive interface. Reasoning hiển thị CVNSS4.0, kết quả tiếng Việt Unicode.">\n<link rel="icon" href="assets/bilabot-logo.svg" type="image/svg+xml">
+<meta name="description" content="Bilabot — CVNSS4.0 cognitive interface. Reasoning hiển thị CVNSS4.0, kết quả tiếng Việt Unicode.">\n<link rel="preconnect" href="https://openrouter.ai" crossorigin>
+<link rel="dns-prefetch" href="//openrouter.ai">
+<link rel="preconnect" href="https://api.deepseek.com" crossorigin>
+<link rel="dns-prefetch" href="//api.deepseek.com">
+<link rel="icon" href="assets/bilabot-logo.svg" type="image/svg+xml">
 <title>Bilabot · CVNSS4.0</title>
 <style>
 :root{--bg:#050816;--p:#091225;--p2:#0d1931;--line:rgba(113,153,255,.16);--text:#edf7ff;--muted:#88a0c1;--dim:#536a8a;--blue:#347dff;--cyan:#28dcff;--vio:#8b5cff;--green:#37e6a7;--amber:#ffc65a;--red:#ff6c83;--r:18px}
@@ -79,14 +83,15 @@ dialog{width:min(670px,calc(100vw - 26px));max-height:86dvh;padding:0;border:0;b
 <dialog id="settings">
 <form class="modal" id="settingsForm">
   <div class="mhead"><div><small>BILABOT SETTINGS</small><b>Cấu hình AI</b></div><button type="button" class="close" data-close="settings">×</button></div>
-  <div class="note"><b>Không còn API key hard-code trong repo.</b> Key chỉ được giữ trong sessionStorage của tab hiện tại. Khi triển khai production, nên dùng Backend Proxy.</div>
+  <div class="note"><b>API key không được hard-code vào repo công khai.</b> Key chỉ được giữ trong sessionStorage của tab hiện tại. Mặc định Bilabot dùng OpenRouter + DeepSeek V4.1 Flash với chế độ Tức thì để giảm thời gian tới token đầu tiên. Production nên dùng Backend Proxy.</div>
   <div class="grid">
     <label class="field"><span>Nhà cung cấp</span><select id="provider"><option value="deepseek">DeepSeek API</option><option value="openrouter">OpenRouter</option><option value="proxy">Backend Proxy</option></select></label>
     <label class="field"><span>Model</span><input id="model" autocomplete="off"></label>
     <label class="field wide"><span>Endpoint</span><input id="endpoint" type="url" autocomplete="off"></label>
     <label class="field wide" id="keyField"><span>API key</span><input id="apiKey" type="password" autocomplete="off" placeholder="Nhập key cho phiên hiện tại"></label>
     <label class="field"><span>Max tokens</span><input id="maxTokens" type="number" min="256" max="32768" step="256"></label>
-    <label class="field"><span>Reasoning display</span><select id="reasoning"><option value="on">Bật · CVNSS4.0</option><option value="off">Tắt</option></select></label>
+    <label class="field"><span>Chế độ phản hồi</span><select id="speed"><option value="instant">⚡ Tức thì</option><option value="balanced">Cân bằng</option><option value="deep">Suy luận sâu</option></select></label>
+    <label class="field wide"><span>Reasoning display</span><select id="reasoning"><option value="on">Bật · CVNSS4.0</option><option value="off">Tắt</option></select></label>
   </div>
   <div class="actions"><button type="button" class="btn" id="resetCfg">Mặc định</button><button class="btn neon" type="submit">Lưu cho phiên này</button></div>
 </form>
@@ -110,9 +115,9 @@ dialog{width:min(670px,calc(100vw - 26px));max-height:86dvh;padding:0;border:0;b
 var CVN=window.CVNSSConverter;
 function q(s,r){return (r||document).querySelector(s)}
 function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
-var E={app:q("#app"),chat:q("#chat"),hero:q("#hero"),input:q("#input"),send:q("#send"),menu:q("#menuBtn"),pill:q("#pill"),providerText:q("#providerText"),settings:q("#settings"),project:q("#project"),form:q("#settingsForm"),provider:q("#provider"),model:q("#model"),endpoint:q("#endpoint"),key:q("#apiKey"),keyField:q("#keyField"),max:q("#maxTokens"),reasoning:q("#reasoning"),toast:q("#toast"),coreMeta:q("#coreMeta"),coreVer:q("#coreVer"),coreBar:q("#coreBar"),coreLed:q("#coreLed"),audit:q("#audit")};
-var PROVIDERS={deepseek:{label:"DeepSeek",endpoint:"https://api.deepseek.com/chat/completions",model:"deepseek-reasoner",key:true},openrouter:{label:"OpenRouter",endpoint:"https://openrouter.ai/api/v1/chat/completions",model:"deepseek/deepseek-r1",key:true},proxy:{label:"Backend Proxy",endpoint:"/api/chat",model:"deepseek-reasoner",key:false}};
-var DEF={provider:"deepseek",endpoint:PROVIDERS.deepseek.endpoint,model:PROVIDERS.deepseek.model,key:"",max:4096,reasoning:true};
+var E={app:q("#app"),chat:q("#chat"),hero:q("#hero"),input:q("#input"),send:q("#send"),menu:q("#menuBtn"),pill:q("#pill"),providerText:q("#providerText"),settings:q("#settings"),project:q("#project"),form:q("#settingsForm"),provider:q("#provider"),model:q("#model"),endpoint:q("#endpoint"),key:q("#apiKey"),keyField:q("#keyField"),max:q("#maxTokens"),speed:q("#speed"),reasoning:q("#reasoning"),toast:q("#toast"),coreMeta:q("#coreMeta"),coreVer:q("#coreVer"),coreBar:q("#coreBar"),coreLed:q("#coreLed"),audit:q("#audit")};
+var PROVIDERS={deepseek:{label:"DeepSeek",endpoint:"https://api.deepseek.com/chat/completions",model:"deepseek-chat",key:true},openrouter:{label:"OpenRouter",endpoint:"https://openrouter.ai/api/v1/chat/completions",model:"deepseek/deepseek-v4.1-flash:nitro",key:true},proxy:{label:"Backend Proxy",endpoint:"/api/chat",model:"deepseek/deepseek-v4.1-flash",key:false}};
+var DEF={provider:"openrouter",endpoint:PROVIDERS.openrouter.endpoint,model:PROVIDERS.openrouter.model,key:"",max:1536,speed:"instant",reasoning:true};
 var cfg=loadCfg(),busy=false,controller=null,history=[{role:"system",content:"Bạn là Bilabot. Trả lời cuối cùng bằng tiếng Việt Unicode chuẩn, rõ ràng và hữu ích. Không dùng CVNSS4.0 trong câu trả lời cuối trừ khi người dùng hỏi trực tiếp về CVNSS4.0."}];
 
 function loadCfg(){try{return Object.assign({},DEF,JSON.parse(sessionStorage.getItem("bilabot.cfg")||"{}"))}catch(e){return Object.assign({},DEF)}}
@@ -129,38 +134,97 @@ function initCore(){
  var rows=[["Version",CVN.VERSION],["Source",CVN.SOURCE_VERSION],["Base rows",a.baseRows],["Ambiguity groups",a.ambiguityGroups],["Critical collisions",a.criticalCollisionGroups],["Silent overwrite",a.silentReverseOverwrite],["Self-test",t.ok?"PASS · "+t.tests+" tests":"FAIL"]];
  E.audit.innerHTML=rows.map(function(x){return '<div class="auditrow"><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>'}).join("")
 }
-function fill(){E.provider.value=cfg.provider;E.model.value=cfg.model;E.endpoint.value=cfg.endpoint;E.key.value=cfg.key||"";E.max.value=cfg.max;E.reasoning.value=cfg.reasoning?"on":"off";E.keyField.style.display=(PROVIDERS[cfg.provider]||PROVIDERS.deepseek).key?"grid":"none"}
-function updatePill(){var p=PROVIDERS[cfg.provider]||PROVIDERS.deepseek,ready=cfg.provider==="proxy"?!!cfg.endpoint:!!(cfg.endpoint&&cfg.key);E.providerText.textContent=ready?p.label+" · "+cfg.model:"Chưa cấu hình API";E.pill.classList.toggle("ready",ready)}
+function fill(){E.provider.value=cfg.provider;E.model.value=cfg.model;E.endpoint.value=cfg.endpoint;E.key.value=cfg.key||"";E.max.value=cfg.max;E.speed.value=cfg.speed||"instant";E.reasoning.value=cfg.reasoning?"on":"off";E.keyField.style.display=(PROVIDERS[cfg.provider]||PROVIDERS.deepseek).key?"grid":"none"}
+function updatePill(){var p=PROVIDERS[cfg.provider]||PROVIDERS.deepseek,ready=cfg.provider==="proxy"?!!cfg.endpoint:!!(cfg.endpoint&&cfg.key);E.providerText.textContent=ready?p.label+" · "+(cfg.speed==="instant"?"⚡ Fast":cfg.speed==="deep"?"Deep":"Balanced"):"Chưa cấu hình API";E.pill.classList.toggle("ready",ready)}
 function setProvider(force){var p=PROVIDERS[E.provider.value]||PROVIDERS.deepseek;if(force||!E.endpoint.value)E.endpoint.value=p.endpoint;if(force||!E.model.value)E.model.value=p.model;E.keyField.style.display=p.key?"grid":"none"}
 
 function addUser(text){E.hero.style.display="none";var n=document.createElement("article");n.className="msg user";n.innerHTML='<div class="meta">Bạn · Unicode</div><div class="userbubble"></div>';q(".userbubble",n).textContent=text;E.chat.appendChild(n);bottom()}
 function addAssistant(){
- E.hero.style.display="none";var n=document.createElement("article");n.className="msg";n.innerHTML='<div class="card"><div class="ahead"><div class="bicon">B</div><div><strong>Bilabot</strong><small>CVNSS4.0 cognitive display layer</small></div><span class="astatus">Đang xử lý</span></div><details class="reason" open><summary><i class="brain"></i><b>Suy nghĩ · CVNSS4.0</b><span class="tag">DISPLAY LAYER</span><span class="rstatus">đang nhận reasoning…</span></summary><pre></pre></details><div class="answer"><span class="cursor"></span></div></div>';E.chat.appendChild(n);bottom();return{n:n,reason:q(".reason",n),pre:q("pre",n),rs:q(".rstatus",n),answer:q(".answer",n),as:q(".astatus",n)}
+ E.hero.style.display="none";var n=document.createElement("article");n.className="msg";n.innerHTML='<div class="card"><div class="ahead"><div class="bicon">B</div><div><strong>Bilabot</strong><small>CVNSS4.0 cognitive display layer</small></div><span class="astatus">Đang xử lý</span></div><details class="reason" open><summary><i class="brain"></i><b>Suy nghĩ · CVNSS4.0</b><span class="tag">DISPLAY LAYER</span><span class="rstatus">đang nhận reasoning…</span></summary><pre></pre></details><div class="answer"><span class="cursor"></span></div></div>';E.chat.appendChild(n);var pre=q("pre",n);pre.textContent=cvnss("Bilabot đang kết nối mô hình…");bottom();return{n:n,reason:q(".reason",n),pre:pre,rs:q(".rstatus",n),answer:q(".answer",n),as:q(".astatus",n)}
 }
-function finish(u,s){u.reason.classList.add("done");u.rs.textContent=u.pre.textContent.trim()?"reasoning đã nhận":"provider không trả reasoning";u.as.textContent=s||"Hoàn tất"}
+function finish(u,s,hasReason){u.reason.classList.add("done");var has=hasReason===undefined?!!u.pre.textContent.trim():!!hasReason;u.rs.textContent=has?"reasoning đã nhận":"provider không trả reasoning";u.as.textContent=s||"Hoàn tất"}
 function headers(){var h={"Content-Type":"application/json","Accept":"text/event-stream"};if(cfg.provider!=="proxy"&&cfg.key)h.Authorization="Bearer "+cfg.key;if(cfg.provider==="openrouter"){h["HTTP-Referer"]=location.origin;h["X-Title"]="Bilabot CVNSS4.0"}return h}
-function body(){var b={model:cfg.model,messages:history,stream:true,max_tokens:Number(cfg.max)||4096};if(cfg.provider==="openrouter"&&cfg.reasoning)b.reasoning={enabled:true};return b}
+function requestMessages(){
+ var sys=history[0],tail=history.slice(1),picked=[],chars=0;
+ for(var i=tail.length-1;i>=0&&picked.length<14;i--){var m=tail[i],len=String(m.content||"").length;if(chars+len>28000&&picked.length>=4)break;picked.unshift(m);chars+=len}
+ return [sys].concat(picked)
+}
+function requestModel(){
+ var m=String(cfg.model||"").trim();
+ if(cfg.provider==="openrouter"){
+  m=m.replace(/:(nitro|floor)$/,"");
+  if((cfg.speed||"instant")==="instant")m+=":nitro"
+ }
+ return m
+}
+function body(){
+ var b={model:requestModel(),messages:requestMessages(),stream:true,max_tokens:Number(cfg.max)||1536};
+ if(cfg.provider==="openrouter"){
+  b.stream_options={include_usage:true};
+  if(cfg.reasoning)b.reasoning={enabled:true,effort:(cfg.speed==="deep"?"high":cfg.speed==="balanced"?"medium":"low")};
+  else b.reasoning={enabled:false}
+ }
+ return b
+}
 function delta(j){var c=(j&&j.choices&&j.choices[0])||{},d=c.delta||c.message||{},content=typeof d.content==="string"?d.content:"",r="";if(typeof d.reasoning_content==="string")r+=d.reasoning_content;if(typeof d.reasoning==="string")r+=d.reasoning;if(Array.isArray(d.reasoning_details))r+=d.reasoning_details.map(function(x){return x.text||x.content||""}).join("");return{content:content,reasoning:r}}
 
 async function stream(u){
  controller=new AbortController();
- var res=await fetch(cfg.endpoint,{method:"POST",headers:headers(),body:JSON.stringify(body()),signal:controller.signal});
- if(!res.ok){var tx=await res.text().catch(function(){return""});throw new Error("HTTP "+res.status+(tx?" · "+tx.slice(0,220):""))}
- if(!res.body)throw new Error("Provider không trả streaming body.");
- var reader=res.body.getReader(),decoder=new TextDecoder(),buf="",content="",raw="";
- while(true){
-  var rr=await reader.read();if(rr.done)break;buf+=decoder.decode(rr.value,{stream:true});var lines=buf.split(/\r?\n/);buf=lines.pop()||"";
-  for(var i=0;i<lines.length;i++){var t=lines[i].trim();if(!t||t.indexOf("data:")!==0)continue;var data=t.slice(5).trim();if(data==="[DONE]")continue;try{var d=delta(JSON.parse(data));if(d.reasoning&&cfg.reasoning){raw+=d.reasoning;u.pre.textContent=cvnss(raw)}if(d.content){content+=d.content;u.answer.textContent=content}}catch(e){}}
+ var started=performance.now(),firstEvent=false,timeout=setTimeout(function(){if(controller)controller.abort()},45000);
+ var res;
+ try{res=await fetch(cfg.endpoint,{method:"POST",headers:headers(),body:JSON.stringify(body()),signal:controller.signal})}
+ catch(e){clearTimeout(timeout);throw e}
+ if(!res.ok){clearTimeout(timeout);var tx=await res.text().catch(function(){return""});throw new Error("HTTP "+res.status+(tx?" · "+tx.slice(0,220):""))}
+ if(!res.body){clearTimeout(timeout);throw new Error("Provider không trả streaming body.")}
+
+ var reader=res.body.getReader(),decoder=new TextDecoder(),buf="",content="",encodedReason="",reasonTail="",raf=0,answerDirty=false,reasonDirty=false,hasReason=false;
+ function markFirst(kind){
+  if(firstEvent)return;firstEvent=true;
+  var sec=((performance.now()-started)/1000).toFixed(1);
+  u.as.textContent=(kind==="reasoning"?"Đang suy nghĩ":"Đang trả lời")+" · "+sec+"s"
+ }
+ function paint(){
+  raf=0;
+  if(reasonDirty){u.pre.textContent=encodedReason+(reasonTail?cvnss(reasonTail):"");reasonDirty=false}
+  if(answerDirty){u.answer.textContent=content;answerDirty=false}
   bottom()
  }
- if(!content)content="Không có nội dung trả lời từ provider.";u.answer.textContent=content;finish(u,"Hoàn tất");return content
+ function schedule(){if(!raf)raf=requestAnimationFrame(paint)}
+ function pushReason(piece){
+  hasReason=true;markFirst("reasoning");reasonTail+=piece;
+  var cut=Math.max(reasonTail.lastIndexOf(" "),reasonTail.lastIndexOf("\n"),reasonTail.lastIndexOf("\t"));
+  if(cut>=0){encodedReason+=cvnss(reasonTail.slice(0,cut+1));reasonTail=reasonTail.slice(cut+1)}
+  reasonDirty=true;schedule()
+ }
+ function pushContent(piece){markFirst("content");content+=piece;answerDirty=true;schedule()}
+
+ while(true){
+  var rr=await reader.read();if(rr.done)break;
+  buf+=decoder.decode(rr.value,{stream:true});
+  var lines=buf.split(/\r?\n/);buf=lines.pop()||"";
+  for(var i=0;i<lines.length;i++){
+   var t=lines[i].trim();if(!t||t.indexOf("data:")!==0)continue;
+   var data=t.slice(5).trim();if(data==="[DONE]")continue;
+   try{var d=delta(JSON.parse(data));if(d.reasoning&&cfg.reasoning)pushReason(d.reasoning);if(d.content)pushContent(d.content)}catch(e){}
+  }
+ }
+ clearTimeout(timeout);
+ if(reasonTail){encodedReason+=cvnss(reasonTail);reasonTail=""}
+ if(raf){cancelAnimationFrame(raf);raf=0}
+ if(hasReason&&cfg.reasoning)u.pre.textContent=encodedReason;
+ else u.pre.textContent=cvnss(cfg.reasoning?"Provider không trả reasoning; Bilabot chuyển thẳng sang kết quả.":"Reasoning display đang tắt.");
+ if(!content)content="Không có nội dung trả lời từ provider.";
+ u.answer.textContent=content;
+ var total=((performance.now()-started)/1000).toFixed(1);
+ finish(u,"Hoàn tất · "+total+"s",hasReason&&cfg.reasoning);
+ return content
 }
 function localDemo(u,text){u.pre.textContent="// LOCAL DEMO · API chưa sẵn sàng\n"+cvnss("Bilabot đang xử lý yêu cầu: "+text);u.answer.textContent="Bilabot đã tải giao diện và bộ chuyển đổi CVNSS4.0. Để trò chuyện với AI, mở Cấu hình AI và nhập API key cho phiên hiện tại, hoặc dùng Backend Proxy.";finish(u,"Local demo")}
 async function send(prefill){
  if(busy){if(controller)controller.abort();return}
  var text=String(prefill!==undefined?prefill:E.input.value).trim();if(!text)return;addUser(text);E.input.value="";grow();var u=addAssistant();history.push({role:"user",content:text});busy=true;E.send.classList.add("busy");E.send.textContent="■";
  var ready=cfg.provider==="proxy"?!!cfg.endpoint:!!(cfg.endpoint&&cfg.key);
- try{if(!ready){localDemo(u,text);return}var content=await stream(u);history.push({role:"assistant",content:content})}
+ try{if(!ready){u.pre.textContent=cvnss("Cần cấu hình API key trước khi gọi mô hình.");u.answer.textContent="Mở Cấu hình AI, chọn OpenRouter và nhập API key cho phiên này. Key không được ghi vào mã nguồn công khai.";finish(u,"Chờ cấu hình",false);setTimeout(function(){fill();E.settings.showModal()},180);return}var content=await stream(u);history.push({role:"assistant",content:content})}
  catch(err){if(err&&err.name==="AbortError"){u.answer.textContent=u.answer.textContent.trim()||"Đã dừng theo yêu cầu.";finish(u,"Đã dừng")}else{u.answer.classList.add("err");u.answer.textContent="Không thể kết nối provider. "+(err&&err.message?err.message:String(err))+"\n\nNếu chạy trên GitHub Pages và gặp CORS, hãy dùng Backend Proxy.";finish(u,"Lỗi kết nối")}}
  finally{busy=false;controller=null;E.send.classList.remove("busy");E.send.textContent="➤";E.input.focus();bottom()}
 }
@@ -170,7 +234,7 @@ q("#settingsBtn").onclick=function(){fill();E.settings.showModal()};E.pill.oncli
 qa("[data-close]").forEach(function(b){b.onclick=function(){q("#"+b.getAttribute("data-close")).close()}});
 E.provider.onchange=function(){setProvider(true)};
 q("#resetCfg").onclick=function(){cfg=Object.assign({},DEF);fill();toast("Đã khôi phục mặc định")};
-E.form.onsubmit=function(ev){ev.preventDefault();cfg={provider:E.provider.value,endpoint:E.endpoint.value.trim(),model:E.model.value.trim(),key:E.key.value.trim(),max:Math.min(32768,Math.max(256,Number(E.max.value)||4096)),reasoning:E.reasoning.value==="on"};saveCfg();updatePill();E.settings.close();toast("Đã lưu cấu hình cho phiên hiện tại")};
+E.form.onsubmit=function(ev){ev.preventDefault();cfg={provider:E.provider.value,endpoint:E.endpoint.value.trim(),model:E.model.value.trim(),key:E.key.value.trim(),max:Math.min(32768,Math.max(256,Number(E.max.value)||1536)),speed:E.speed.value||"instant",reasoning:E.reasoning.value==="on"};saveCfg();updatePill();E.settings.close();toast("Đã lưu cấu hình cho phiên hiện tại")};
 E.input.oninput=grow;E.input.onkeydown=function(ev){if(ev.key==="Enter"&&!ev.shiftKey){ev.preventDefault();send()}};E.send.onclick=function(){send()};
 qa(".chip").forEach(function(b){b.onclick=function(){send(b.getAttribute("data-prompt"))}});
 document.addEventListener("keydown",function(ev){if(ev.key==="Escape")E.app.classList.remove("open")});
