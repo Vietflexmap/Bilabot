@@ -120,8 +120,9 @@ var PROVIDERS={deepseek:{label:"DeepSeek",endpoint:"https://api.deepseek.com/cha
 var DEF={provider:"openrouter",endpoint:PROVIDERS.openrouter.endpoint,model:PROVIDERS.openrouter.model,key:"",max:1536,speed:"instant",reasoning:true};
 var cfg=loadCfg(),busy=false,controller=null,history=[{role:"system",content:"Bạn là Bilabot. Trả lời cuối cùng bằng tiếng Việt Unicode chuẩn, rõ ràng và hữu ích. Không dùng CVNSS4.0 trong câu trả lời cuối trừ khi người dùng hỏi trực tiếp về CVNSS4.0."}];
 
-function loadCfg(){try{return Object.assign({},DEF,JSON.parse(sessionStorage.getItem("bilabot.cfg")||"{}"))}catch(e){return Object.assign({},DEF)}}
-function saveCfg(){sessionStorage.setItem("bilabot.cfg",JSON.stringify(cfg))}
+var CFG_VERSION=2;
+function loadCfg(){try{var saved=JSON.parse(sessionStorage.getItem("bilabot.cfg")||"{}");if(saved._v!==CFG_VERSION){sessionStorage.removeItem("bilabot.cfg");return Object.assign({},DEF)}return Object.assign({},DEF,saved)}catch(e){return Object.assign({},DEF)}}
+function saveCfg(){sessionStorage.setItem("bilabot.cfg",JSON.stringify(Object.assign({_v:CFG_VERSION},cfg)))}
 function cvnss(t){if(!CVN||!t)return t||"";try{return CVN.convert(t,"cqn").cvss}catch(e){return t}}
 function toast(t){E.toast.textContent=t;E.toast.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(function(){E.toast.classList.remove("show")},2100)}
 function bottom(){requestAnimationFrame(function(){E.chat.scrollTop=E.chat.scrollHeight})}
