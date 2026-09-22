@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<!-- saved from url=(0067)file:///C:/Users/Admin/Downloads/deepseek_html_20260922_577133.html -->
+<html lang="vi"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI · CVNSS4.0</title>
+<style>
+  :root {
+    --bg:        #0a0d14;
+    --surface:   #111621;
+    --surface-2: #161c2a;
+    --line:      #1e2636;
+    --line-2:    #2a3446;
+    --text:      #e8edf5;
+    --text-dim:  #8b96a8;
+    --text-mute: #5b6577;
+    --accent:    #4f8cff;
+    --accent-2:  #3d7ae6;
+    --accent-soft: rgba(79, 140, 255, 0.12);
+    --code:      #7dd3fc;
+    --warn:      #fbbf24;
+    --danger:    #f87171;
+    --success:   #34d399;
+    --radius:    12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── App shell ─────────────────────────────────── */
+  .app {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    max-width: 900px;
+    margin: 0 auto;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  /* ── Header ────────────────────────────────────── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+    gap: 12px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .logo-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent) 0%, #7c5cff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(79, 140, 255, 0.25);
+  }
+
+  .logo-mark svg { width: 18px; height: 18px; }
+
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .logo-text .title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .logo-text .subtitle {
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  .controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .btn {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-2);
+    background: var(--surface-2);
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .btn:hover { background: var(--line); color: var(--text); border-color: var(--line-2); }
+  .btn:active { transform: scale(0.97); }
+
+  .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  .btn.mode-auto    { color: var(--accent);  border-color: rgba(79, 140, 255, 0.35); background: var(--accent-soft); }
+  .btn.mode-api     { color: var(--success); border-color: rgba(52, 211, 153, 0.3); background: rgba(52, 211, 153, 0.08); }
+  .btn.mode-offline { color: var(--warn);    border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.08); }
+
+  /* ── Chat area ─────────────────────────────────── */
+  .chat {
+    overflow-y: auto;
+    padding: 24px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    scroll-behavior: smooth;
+  }
+  .chat::-webkit-scrollbar { width: 8px; }
+  .chat::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .chat::-webkit-scrollbar-thumb:hover { background: var(--line-2); }
+  .chat::-webkit-scrollbar-track { background: transparent; }
+
+  .msg {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 88%;
+    animation: fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user      { align-self: flex-end; align-items: flex-end; }
+  .msg.assistant { align-self: flex-start; align-items: flex-start; width: 100%; max-width: 100%; }
+
+  .msg .head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-mute);
+    letter-spacing: 0.03em;
+    padding: 0 4px;
+    text-transform: uppercase;
+  }
+  .msg .head svg { width: 12px; height: 12px; }
+
+  .bubble {
+    padding: 11px 15px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 100%;
+  }
+  .msg.user .bubble {
+    background: linear-gradient(135deg, var(--accent) 0%, #5b7cff 100%);
+    color: #fff;
+    border-bottom-right-radius: 3px;
+    box-shadow: 0 4px 12px rgba(79, 140, 255, 0.18);
+  }
+  .msg.assistant .bubble {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-bottom-left-radius: 3px;
+    padding: 0;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  /* ── Reasoning panel ──────────────────────────── */
+  .reason {
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(125, 211, 252, 0.03), transparent);
+  }
+  .reason summary {
+    cursor: pointer;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dim);
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s;
+  }
+  .reason summary:hover { background: rgba(255,255,255,0.02); }
+  .reason summary::-webkit-details-marker { display: none; }
+
+  .brain {
+    width: 16px;
+    height: 16px;
+    color: var(--code);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+  .reason.streaming .brain {
+    animation: brainPulse 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px rgba(125, 211, 252, 0.6));
+  }
+  .reason.done .brain { opacity: 0.55; }
+
+  @keyframes brainPulse {
+    0%, 100% { opacity: 1;   transform: scale(1); }
+    50%      { opacity: 0.6; transform: scale(1.08); }
+  }
+
+  .reason summary .label { flex: 1; }
+
+  .reason summary .chev {
+    width: 12px;
+    height: 12px;
+    color: var(--text-mute);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  .reason[open] summary .chev { transform: rotate(90deg); }
+
+  .reason summary .status {
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(125, 211, 252, 0.1);
+    color: var(--code);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .reason.streaming summary .status {
+    background: rgba(125, 211, 252, 0.15);
+    animation: statusPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes statusPulse { 50% { opacity: 0.5; } }
+  .reason.done summary .status {
+    background: rgba(52, 211, 153, 0.1);
+    color: var(--success);
+  }
+
+  .reason pre {
+    margin: 0;
+    padding: 12px 14px 14px;
+    font-family: 'SF Mono', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--code);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 300px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.25);
+    border-top: 1px solid var(--line);
+  }
+  .reason pre::-webkit-scrollbar { width: 6px; }
+  .reason pre::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 3px; }
+
+  .answer {
+    padding: 13px 15px;
+    color: var(--text);
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .answer.error { color: var(--danger); }
+  .answer .err-line { color: var(--danger); }
+  .answer code {
+    background: rgba(0,0,0,0.4);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 12.5px;
+    color: var(--code);
+  }
+
+  .typing-cursor {
+    display: inline-block;
+    width: 7px;
+    height: 15px;
+    background: var(--accent);
+    margin-left: 3px;
+    vertical-align: -2px;
+    border-radius: 1px;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── Empty state ──────────────────────────────── */
+  .empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+    gap: 14px;
+  }
+  .empty .mark {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent) 0%, #7c5cff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 8px 28px rgba(79, 140, 255, 0.28);
+  }
+  .empty .mark svg { width: 28px; height: 28px; }
+
+  .empty h2 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .empty p {
+    font-size: 13px;
+    color: var(--text-dim);
+    max-width: 340px;
+    line-height: 1.65;
+  }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .chip {
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-size: 12px;
+    font-family: 'SF Mono', 'Consolas', monospace;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  /* ── Composer ─────────────────────────────────── */
+  .composer {
+    padding: 12px 16px 16px;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .composer-wrap {
+    flex: 1;
+    position: relative;
+    background: var(--surface-2);
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .composer-wrap:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .composer textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    padding: 11px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    outline: none;
+    max-height: 160px;
+    line-height: 1.55;
+    display: block;
+  }
+  .composer textarea::placeholder { color: var(--text-mute); }
+
+  .send {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(79, 140, 255, 0.3);
+  }
+  .send:hover:not(:disabled) { background: var(--accent-2); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(79, 140, 255, 0.35); }
+  .send:active:not(:disabled) { transform: translateY(0); }
+  .send:disabled { background: var(--line-2); color: var(--text-mute); box-shadow: none; cursor: not-allowed; }
+  .send svg { width: 17px; height: 17px; }
+
+  /* ── Footer ───────────────────────────────────── */
+  footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 20px;
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+    font-size: 11px;
+    color: var(--text-mute);
+    gap: 12px;
+    letter-spacing: 0.01em;
+  }
+  footer .left, footer .right {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  footer .left  { text-align: left; }
+  footer .right { text-align: right; }
+  footer b { color: var(--text-dim); font-weight: 500; }
+
+  /* ── Responsive ───────────────────────────────── */
+  @media (max-width: 600px) {
+    .app { border-left: none; border-right: none; }
+    header { padding: 12px 14px; }
+    .chat { padding: 18px 14px 12px; }
+    .composer { padding: 10px 12px 14px; }
+    footer { padding: 8px 14px; font-size: 10px; }
+    .logo-text .subtitle { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══════════════ HEADER ═══════════════ -->
+  <header>
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0-3 3.87V13a4 4 0 0 0 2 3.46V18a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3v-1.54A4 4 0 0 0 19 13v-2.13A4 4 0 0 0 16 7V6a4 4 0 0 0-4-4z"></path>
+          <path d="M9 9h1"></path>
+          <path d="M14 9h1"></path>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="title">AI</span>
+        <span class="subtitle">CVNSS 4.0</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn mode-auto" id="modeBtn" title="Auto: thử API, lỗi thì chuyển Offline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M2 12h20"></path>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span id="modeLabel">Auto</span>
+      </button>
+      <button class="btn" id="clearBtn" title="Xóa hội thoại">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18"></path>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════════ CHAT ═══════════════ -->
+  <div class="chat" id="chat">
+    <div class="empty" id="empty">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0-3 3.87V13a4 4 0 0 0 2 3.46V18a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3v-1.54A4 4 0 0 0 19 13v-2.13A4 4 0 0 0 16 7V6a4 4 0 0 0-4-4z"></path>
+          <path d="M9 9h1"></path>
+          <path d="M14 9h1"></path>
+          <path d="M9.5 15s1 .5 2.5.5 2.5-.5 2.5-.5"></path>
+        </svg>
+      </div>
+      <h2>Sẵn sàng trò chuyện</h2>
+      <p>AI suy luận bằng mã CVNSS4.0, trả lời bằng tiếng Việt. Nhấn vào biểu tượng não để xem quá trình suy luận.</p>
+      <div class="chips">
+        <div class="chip" data-prompt="Xin chào">Xin chào</div>
+        <div class="chip" data-prompt="Hôm nay là thứ mấy">Hôm nay là thứ mấy?</div>
+        <div class="chip" data-prompt="Giới thiệu về CVNSS4.0">CVNSS4.0 là gì?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ COMPOSER ═══════════════ -->
+  <div class="composer">
+    <div class="composer-wrap">
+      <textarea id="input" rows="1" placeholder="Nhập tin nhắn… (Enter để gửi, Shift+Enter xuống dòng)"></textarea>
+    </div>
+    <button class="send" id="send" title="Gửi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 2L11 13"></path>
+        <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ═══════════════ FOOTER ═══════════════ -->
+  <footer>
+    <div class="left">@2026, <b>Trần Tư Bình</b> và <b>Kiều Trường Lâm</b> phát kiến CVNSS4.0</div>
+    <div class="right">Nguồn: <b>Long Ngo</b> phát triển · Giấy phép MIT</div>
+  </footer>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CVNSS 4.0 CONVERTER — Audit-Safe Long-Term Edition v5.0.0
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+(function (root, factory) {
+  const api = factory();
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else if (root) root.CVNSSConverter = api;
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  "use strict";
+
+  const VERSION = "5.0.0-audit-safe";
+
+  const BASE_ROWS = Object.freeze([
+    ["a","a","a"],["à","al","al"],["ả","az","az"],["ã","as","as"],["á","aj","aj"],["ạ","ar","ar"],
+    ["oa","oa","oa"],["òa","oal","oal"],["ỏa","oaz","oaz"],["õa","oas","oas"],["óa","oaj","oaj"],["ọa","oar","oar"],
+    ["oà","oal","oal"],["oả","oaz","oaz"],["oã","oas","oas"],["oá","oaj","oaj"],["oạ","oar","oar"],
+    ["oác","osj","osj"],["oạc","osr","osr"],["oách","oakj","oakj"],["oạch","oakr","oakr"],
+    ["oai","ojp","ojp"],["oài","ojl","ojl"],["oải","ojz","ojz"],["oãi","ojs","ojs"],["oái","ojj","ojj"],["oại","ojr","ojr"],
+    ["oao","owp","owp"],["oào","owl","owl"],["oảo","owz","owz"],["oão","ows","ows"],["oáo","owj","owj"],["oạo","owr","owr"],
+    ["oáp","ofj","ofj"],["oạp","ofr","ofr"],["oát","odj","odj"],["oạt","odr","odr"],
+    ["oắt","adx","adx"],["oặt","adh","adh"],["oắc","asx","asx"],["oặc","ash","ash"],
+    ["oăn","alo","alo"],["oằn","alk","alk"],["oẳn","alv","alv"],["oẵn","alw","alw"],["oắn","alx","alx"],["oặn","alh","alh"],
+    ["oăm","avo","avo"],["oằm","avk","avk"],["oẳm","avv","avv"],["oẵm","avw","avw"],["oắm","avx","avx"],["oặm","avh","avh"],
+    ["oăng","azo","azo"],["oằng","azk","azk"],["oẳng","azv","azv"],["oẵng","azw","azw"],["oắng","azx","azx"],["oặng","azh","azh"],
+    ["oay","ajp","ajp"],["oày","ajl","ajl"],["oảy","ajz","ajz"],["oãy","ajs","ajs"],["oáy","ajj","ajj"],["oạy","ajr","ajr"],
+    ["ác","ac","ac"],["ạc","acr","acr"],["ách","akj","akj"],["ạch","akr","akr"],
+    ["ai","ai","ai"],["ài","ail","ail"],["ải","aiz","aiz"],["ãi","ais","ais"],["ái","aij","aij"],["ại","air","air"],
+    ["am","am","am"],["àm","aml","aml"],["ảm","amz","amz"],["ãm","ams","ams"],["ám","amj","amj"],["ạm","amr","amr"],
+    ["an","an","an"],["àn","anl","anl"],["ản","anz","anz"],["ãn","ans","ans"],["án","anj","anj"],["ạn","anr","anr"],
+    ["oan","olp","olp"],["oàn","oll","oll"],["oản","olz","olz"],["oãn","ols","ols"],["oán","olj","olj"],["oạn","olr","olr"],
+    ["oanh","oahp","oahp"],["oành","oahl","oahl"],["oảnh","oahz","oahz"],["oãnh","oahs","oahs"],["oánh","oahj","oahj"],["oạnh","oahr","oahr"],
+    ["ang","agp","agp"],["àng","agl","agl"],["ảng","agz","agz"],["ãng","ags","ags"],["áng","agj","agj"],["ạng","agr","agr"],
+    ["oang","ozp","ozp"],["oàng","ozl","ozl"],["oảng","ozz","ozz"],["oãng","ozs","ozs"],["oáng","ozj","ozj"],["oạng","ozr","ozr"],
+    ["anh","ahp","ahp"],["ành","ahl","ahl"],["ảnh","ahz","ahz"],["ãnh","ahs","ahs"],["ánh","ahj","ahj"],["ạnh","ahr","ahr"],
+    ["ao","ao","ao"],["ào","aol","aol"],["ảo","aoz","aoz"],["ão","aos","aos"],["áo","aoj","aoj"],["ạo","aor","aor"],
+    ["áp","ap","ap"],["ạp","apr","apr"],["át","at","at"],["ạt","atr","atr"],
+    ["au","au","au"],["àu","aul","aul"],["ảu","auz","auz"],["áu","auj","auj"],["ạu","aur","aur"],
+    ["ay","ay","ay"],["ày","ayl","ayl"],["ảy","ayz","ayz"],["ãy","ays","ays"],["áy","ayj","ayj"],["ạy","ayr","ayr"],
+    ["ắc","acx","acx"],["ặc","ach","ach"],
+    ["ăm","amo","amo"],["ằm","amk","amk"],["ẳm","amv","amv"],["ẵm","amw","amw"],["ắm","amx","amx"],["ặm","amh","amh"],
+    ["ăn","ano","ano"],["ằn","ank","ank"],["ẳn","anv","anv"],["ẵn","anw","anw"],["ắn","anx","anx"],["ặn","anh","anh"],
+    ["ăng","ago","ago"],["ằng","agk","agk"],["ẳng","agv","agv"],["ẵng","agw","agw"],["ắng","agx","agx"],["ặng","agh","agh"],
+    ["ắp","apx","apx"],["ặp","aph","aph"],["ắt","atx","atx"],["ặt","ath","ath"],
+    ["ấc","acb","acb"],["ậc","acf","acf"],
+    ["âm","amy","amy"],["ầm","amd","amd"],["ẩm","amq","amq"],["ẫm","amg","amg"],["ấm","amb","amb"],["ậm","amf","amf"],
+    ["ân","any","any"],["ần","and","and"],["ẩn","anq","anq"],["ẫn","ang","ang"],["ấn","anb","anb"],["ận","anf","anf"],
+    ["âng","agy","agy"],["ầng","agd","agd"],["ẩng","agq","agq"],["ẫng","agg","agg"],["ấng","agb","agb"],["ậng","agf","agf"],
+    ["uân","aly","aly"],["uần","ald","ald"],["uẩn","alq","alq"],["uẫn","alg","alg"],["uấn","alb","alb"],["uận","alf","alf"],
+    ["uâng","azy","azy"],["uầng","azd","azd"],["uẩng","azq","azq"],["uẫng","azg","azg"],["uấng","azb","azb"],["uậng","azf","azf"],
+    ["ấp","apb","apb"],["ập","apf","apf"],["ất","atb","atb"],["ật","atf","atf"],
+    ["uất","adb","adb"],["uật","adf","adf"],
+    ["âu","auy","auy"],["ầu","aud","aud"],["ẩu","auq","auq"],["ẫu","aug","aug"],["ấu","aub","aub"],["ậu","auf","auf"],
+    ["ây","ayy","ayy"],["ầy","ayd","ayd"],["ẩy","ayq","ayq"],["ẫy","ayg","ayg"],["ấy","ayb","ayb"],["ậy","ayf","ayf"],
+    ["uây","ajy","ajy"],["uầy","ajd","ajd"],["uẩy","ajq","ajq"],["uẫy","ajg","ajg"],["uấy","ajb","ajb"],["uậy","ajf","ajf"],
+    ["e","e","e"],["è","el","el"],["ẻ","ez","ez"],["ẽ","es","es"],["é","ej","ej"],["ẹ","er","er"],
+    ["oe","oe","oe"],["òe","oel","oel"],["ỏe","oez","oez"],["õe","oes","oes"],["óe","oej","oej"],["ọe","oer","oer"],
+    ["éc","ec","ec"],["ẹc","ecr","ecr"],
+    ["em","em","em"],["èm","eml","eml"],["ẻm","emz","emz"],["ẽm","ems","ems"],["ém","emj","emj"],["ẹm","emr","emr"],
+    ["en","en","en"],["èn","enl","enl"],["ẻn","enz","enz"],["ẽn","ens","ens"],["én","enj","enj"],["ẹn","enr","enr"],
+    ["oen","elp","elp"],["oèn","ell","ell"],["oẻn","elz","elz"],["oẽn","els","els"],["oén","elj","elj"],["oẹn","elr","elr"],
+    ["eng","egp","egp"],["èng","egl","egl"],["ẻng","egz","egz"],["ẽng","egs","egs"],["éng","egj","egj"],["ẹng","egr","egr"],
+    ["eo","eo","eo"],["èo","eol","eol"],["ẻo","eoz","eoz"],["ẽo","eos","eos"],["éo","eoj","eoj"],["ẹo","eor","eor"],
+    ["oeo","ewp","ewp"],["oèo","ewl","ewl"],["oẻo","ewz","ewz"],["oẽo","ews","ews"],["oéo","ewj","ewj"],["oẹo","ewr","ewr"],
+    ["ép","ep","ep"],["ẹp","epr","epr"],["ét","et","et"],["ẹt","etr","etr"],
+    ["oét","edj","edj"],["oẹt","edr","edr"],
+    ["ê","ey","ey"],["ề","ed","ed"],["ể","eq","eq"],["ễ","eg","eg"],["ế","eb","eb"],["ệ","ef","ef"],
+    ["uê","uey","uey"],["uề","ued","ued"],["uể","ueq","ueq"],["uễ","ueg","ueg"],["uế","ueb","ueb"],["uệ","uef","uef"],
+    ["ếch","ekb","ekb"],["ệch","ekf","ekf"],["uếch","uekb","uekb"],["uệch","uekf","uekf"],
+    ["êm","emy","emy"],["ềm","emd","emd"],["ểm","emq","emq"],["ễm","emg","emg"],["ếm","emb","emb"],["ệm","emf","emf"],
+    ["ên","eny","eny"],["ền","end","end"],["ển","enq","enq"],["ễn","eng","eng"],["ến","enb","enb"],["ện","enf","enf"],
+    ["ênh","ehy","ehy"],["ềnh","ehd","ehd"],["ểnh","ehq","ehq"],["ễnh","ehg","ehg"],["ếnh","ehb","ehb"],["ệnh","ehf","ehf"],
+    ["uênh","uehy","uehy"],["uềnh","uehd","uehd"],["uểnh","uehq","uehq"],["uễnh","uehg","uehg"],["uếnh","uehb","uehb"],["uệnh","uehf","uehf"],
+    ["ếp","epb","epb"],["ệp","epf","epf"],["ết","etb","etb"],["ệt","etf","etf"],
+    ["êu","euy","euy"],["ều","eud","eud"],["ểu","euq","euq"],["ễu","eug","eug"],["ếu","eub","eub"],["ệu","euf","euf"],
+    ["i","i","i"],["ì","il","il"],["ỉ","iz","iz"],["ĩ","is","is"],["í","ij","ij"],["ị","ir","ir"],
+    ["uy","y","y"],["ùy","yl","yl"],["ủy","yz","yz"],["ũy","ys","ys"],["úy","yj","yj"],["ụy","yr","yr"],
+    ["uỳ","yl","yl"],["uỷ","yz","yz"],["uỹ","ys","ys"],["uý","yj","yj"],["uỵ","yr","yr"],
+    ["ia","ia","ia"],["ìa","ial","ial"],["ỉa","iaz","iaz"],["ĩa","ias","ias"],["ía","iaj","iaj"],["ịa","iar","iar"],
+    ["uya","ya","ya"],
+    ["íc","ic","ic"],["ích","ikj","ikj"],["ịch","ikr","ikr"],["uých","ykj","ykj"],["uỵch","ykr","ykr"],
+    ["iếc","isb","isb"],["iệc","isf","isf"],
+    ["iêm","ivy","ivy"],["iềm","ivd","ivd"],["iểm","ivq","ivq"],["iễm","ivg","ivg"],["iếm","ivb","ivb"],["iệm","ivf","ivf"],
+    ["iên","ily","ily"],["iền","ild","ild"],["iển","ilq","ilq"],["iễn","ilg","ilg"],["iến","ilb","ilb"],["iện","ilf","ilf"],
+    ["uyên","yly","yly"],["uyền","yld","yld"],["uyển","ylq","ylq"],["uyễn","ylg","ylg"],["uyến","ylb","ylb"],["uyện","ylf","ylf"],
+    ["iêng","izy","izy"],["iềng","izd","izd"],["iểng","izq","izq"],["iễng","izg","izg"],["iếng","izb","izb"],["iệng","izf","izf"],
+    ["iếp","ifb","ifb"],["iệp","iff","iff"],["iết","idb","idb"],["iệt","idf","idf"],
+    ["uyết","ydb","ydb"],["uyệt","ydf","ydf"],
+    ["iêu","iwy","iwy"],["iều","iwd","iwd"],["iểu","iwq","iwq"],["iễu","iwg","iwg"],["iếu","iwb","iwb"],["iệu","iwf","iwf"],
+    ["yêt","idy","idy"],["yệt","idf","idf"],
+    ["yên","ily","ily"],["yền","ild","ild"],["yển","ilq","ilq"],["yễn","ilg","ilg"],["yến","ilb","ilb"],["yện","ilf","ilf"],
+    ["yêm","ivy","ivy"],["yềm","ivd","ivd"],["yểm","ivq","ivq"],["yễm","ivg","ivg"],["yếm","ivb","ivb"],["yệm","ivf","ivf"],
+    ["yêng","izy","izy"],["yềng","izd","izd"],["yểng","izq","izq"],["yễng","izg","izg"],["yếng","izb","izb"],["yệng","izf","izf"],
+    ["yêu","iwy","iwy"],["yều","iwd","iwd"],["yểu","iwq","iwq"],["yễu","iwg","iwg"],["yếu","iwb","iwb"],["yệu","iwf","iwf"],
+    ["im","im","im"],["ìm","iml","iml"],["ỉm","imz","imz"],["ĩm","ims","ims"],["ím","imj","imj"],["ịm","imr","imr"],
+    ["in","in","in"],["ìn","inl","inl"],["ỉn","inz","inz"],["ĩn","ins","ins"],["ín","inj","inj"],["ịn","inr","inr"],
+    ["inh","ihp","ihp"],["ình","ihl","ihl"],["ỉnh","ihz","ihz"],["ĩnh","ihs","ihs"],["ính","ihj","ihj"],["ịnh","ihr","ihr"],
+    ["uynh","yhp","yhp"],["uỳnh","yhl","yhl"],["uỷnh","yhz","yhz"],["uỹnh","yhs","yhs"],["uýnh","yhj","yhj"],["uỵnh","yhr","yhr"],
+    ["íp","ip","ip"],["ịp","ipr","ipr"],["uýp","yp","yp"],["uỵp","ypr","ypr"],
+    ["ít","it","it"],["ịt","itr","itr"],["uýt","yt","yt"],["uỵt","ytr","ytr"],
+    ["iu","iu","iu"],["ìu","iul","iul"],["ỉu","iuz","iuz"],["ĩu","ius","ius"],["íu","iuj","iuj"],["ịu","iur","iur"],
+    ["uyu","yu","yu"],["uỳu","yul","yul"],["uỷu","yuz","yuz"],["uỹu","yus","yus"],["uýu","yuj","yuj"],["uỵu","yur","yur"],
+    ["uỳn","ynl","ynl"],["uỷn","ynz","ynz"],["uỹn","yns","yns"],["uýn","ynj","ynj"],["uỵn","ynr","ynr"],
+    ["o","o","o"],["ò","ol","ol"],["ỏ","oz","oz"],["õ","os","os"],["ó","oj","oj"],["ọ","or","or"],
+    ["óc","oc","oc"],["ọc","ocr","ocr"],
+    ["oi","oi","oi"],["òi","oil","oil"],["ỏi","oiz","oiz"],["õi","ois","ois"],["ói","oij","oij"],["ọi","oir","oir"],
+    ["om","om","om"],["òm","oml","oml"],["ỏm","omz","omz"],["õm","oms","oms"],["óm","omj","omj"],["ọm","omr","omr"],
+    ["on","on","on"],["òn","onl","onl"],["ỏn","onz","onz"],["õn","ons","ons"],["ón","onj","onj"],["ọn","onr","onr"],
+    ["ong","ogp","ogp"],["òng","ogl","ogl"],["ỏng","ogz","ogz"],["õng","ogs","ogs"],["óng","ogj","ogj"],["ọng","ogr","ogr"],
+    ["oóc","ooc","ooc"],["oong","oog","oog"],
+    ["oòng","oogl","oogl"],["oỏng","oogz","oogz"],["oõng","oogs","oogs"],["oóng","oogj","oogj"],["oọng","oogr","oogr"],
+    ["óp","op","op"],["ọp","opr","opr"],["ót","ot","ot"],["ọt","otr","otr"],
+    ["ô","oy","oy"],["ồ","od","od"],["ổ","oq","oq"],["ỗ","og","og"],["ố","ob","ob"],["ộ","of","of"],
+    ["ốc","ocb","ocb"],["ộc","ocf","ocf"],
+    ["ôi","oiy","oiy"],["ồi","oid","oid"],["ổi","oiq","oiq"],["ỗi","oig","oig"],["ối","oib","oib"],["ội","oif","oif"],
+    ["ôm","omy","omy"],["ồm","omd","omd"],["ổm","omq","omq"],["ỗm","omg","omg"],["ốm","omb","omb"],["ộm","omf","omf"],
+    ["ôn","ony","ony"],["ồn","ond","ond"],["ổn","onq","onq"],["ỗn","ong","ong"],["ốn","onb","onb"],["ộn","onf","onf"],
+    ["ông","ogy","ogy"],["ồng","ogd","ogd"],["ổng","ogq","ogq"],["ỗng","ogg","ogg"],["ống","ogb","ogb"],["ộng","ogf","ogf"],
+    ["ốp","opb","opb"],["ộp","opf","opf"],["ốt","otb","otb"],["ột","otf","otf"],
+    ["ơ","oo","oo"],["ờ","ok","ok"],["ở","ov","ov"],["ỡ","ow","ow"],["ớ","ox","ox"],["ợ","oh","oh"],
+    ["ơi","oio","oio"],["ời","oik","oik"],["ởi","oiv","oiv"],["ỡi","oiw","oiw"],["ới","oix","oix"],["ợi","oih","oih"],
+    ["ơm","omo","omo"],["ờm","omk","omk"],["ởm","omv","omv"],["ỡm","omw","omw"],["ớm","omx","omx"],["ợm","omh","omh"],
+    ["ơn","ono","ono"],["ờn","onk","onk"],["ởn","onv","onv"],["ỡn","onw","onw"],["ớn","onx","onx"],["ợn","onh","onh"],
+    ["ơng","ogo","ogo"],["ờng","ogk","ogk"],["ởng","ogv","ogv"],["ỡng","ogw","ogw"],["ớng","ogx","ogx"],["ợng","ogh","ogh"],
+    ["ớp","opx","opx"],["ợp","oph","oph"],["ớt","otx","otx"],["ợt","oth","oth"],
+    ["u","u","u"],["ù","ul","ul"],["ủ","uz","uz"],["ũ","us","us"],["ú","uj","uj"],["ụ","ur","ur"],
+    ["ua","ua","ua"],["ùa","ual","ual"],["ủa","uaz","uaz"],["ũa","uas","uas"],["úa","uaj","uaj"],["ụa","uar","uar"],
+    ["úc","uc","uc"],["ục","ucr","ucr"],
+    ["ui","ui","ui"],["ùi","uil","uil"],["ủi","uiz","uiz"],["ũi","uis","uis"],["úi","uij","uij"],["ụi","uir","uir"],
+    ["um","um","um"],["ùm","uml","uml"],["ủm","umz","umz"],["ũm","ums","ums"],["úm","umj","umj"],["ụm","umr","umr"],
+    ["un","un","un"],["ùn","unl","unl"],["ủn","unz","unz"],["ũn","uns","uns"],["ún","unj","unj"],["ụn","unr","unr"],
+    ["ung","ugp","ugp"],["ùng","ugl","ugl"],["ủng","ugz","ugz"],["ũng","ugs","ugs"],["úng","ugj","ugj"],["ụng","ugr","ugr"],
+    ["uơ","uoo","uoo"],["uờ","uok","uok"],["uở","uov","uov"],["uỡ","uow","uow"],["uớ","uox","uox"],["uợ","uoh","uoh"],
+    ["uơn","olo","olo"],["uờn","olk","olk"],["uởn","olv","olv"],["uỡn","olw","olw"],["uớn","olx","olx"],["uợn","olh","olh"],
+    ["uớt","odx","odx"],["uợt","odh","odh"],
+    ["uốc","usb","usb"],["uộc","usf","usf"],
+    ["uôi","ujy","ujy"],["uồi","ujd","ujd"],["uổi","ujq","ujq"],["uỗi","ujg","ujg"],["uối","ujb","ujb"],["uội","ujf","ujf"],
+    ["uôm","uvy","uvy"],["uồm","uvd","uvd"],["uổm","uvq","uvq"],["uỗm","uvg","uvg"],["uốm","uvb","uvb"],["uộm","uvf","uvf"],
+    ["uôn","uly","uly"],["uồn","uld","uld"],["uổn","ulq","ulq"],["uỗn","ulg","ulg"],["uốn","ulb","ulb"],["uộn","ulf","ulf"],
+    ["uông","uzy","uzy"],["uồng","uzd","uzd"],["uổng","uzq","uzq"],["uỗng","uzg","uzg"],["uống","uzb","uzb"],["uộng","uzf","uzf"],
+    ["uốt","udb","udb"],["uột","udf","udf"],["uốp","ufb","ufb"],["uộp","uff","uff"],
+    ["úp","up","up"],["ụp","upr","upr"],["út","ut","ut"],["ụt","utr","utr"],
+    ["ư","uo","uo"],["ừ","uk","uk"],["ử","uv","uv"],["ữ","uw","uw"],["ứ","ux","ux"],["ự","uh","uh"],
+    ["ưa","uao","uao"],["ừa","uak","uak"],["ửa","uav","uav"],["ữa","uaw","uaw"],["ứa","uax","uax"],["ựa","uah","uah"],
+    ["ức","ucx","ucx"],["ực","uch","uch"],
+    ["ưi","uio","uio"],["ừi","uik","uik"],["ửi","uiv","uiv"],["ữi","uiw","uiw"],["ứi","uix","uix"],["ựi","uih","uih"],
+    ["ưm","umo","umo"],["ừm","umk","umk"],["ửm","umv","umv"],["ữm","umw","umw"],["ứm","umx","umx"],["ựm","umh","umh"],
+    ["ưn","uno","uno"],["ừn","unk","unk"],["ửn","unv","unv"],["ữn","unw","unw"],["ứn","unx","unx"],["ựn","unh","unh"],
+    ["ưng","ugo","ugo"],["ừng","ugk","ugk"],["ửng","ugv","ugv"],["ững","ugw","ugw"],["ứng","ugx","ugx"],["ựng","ugh","ugh"],
+    ["ước","usx","usx"],["ược","ush","ush"],
+    ["ươi","ujo","ujo"],["ười","ujk","ujk"],["ưởi","ujv","ujv"],["ưỡi","ujw","ujw"],["ưới","ujx","ujx"],["ượi","ujh","ujh"],
+    ["ươm","uvo","uvo"],["ườm","uvk","uvk"],["ưởm","uvv","uvv"],["ưỡm","uvw","uvw"],["ướm","uvx","uvx"],["ượm","uvh","uvh"],
+    ["ươn","ulo","ulo"],["ườn","ulk","ulk"],["ưởn","ulv","ulv"],["ưỡn","ulw","ulw"],["ướn","ulx","ulx"],["ượn","ulh","ulh"],
+    ["ương","uzo","uzo"],["ường","uzk","uzk"],["ưởng","uzv","uzv"],["ưỡng","uzw","uzw"],["ướng","uzx","uzx"],["ượng","uzh","uzh"],
+    ["ướp","ufx","ufx"],["ượp","ufh","ufh"],["ướt","udx","udx"],["ượt","udh","udh"],
+    ["ươu","uwo","uwo"],["ườu","uwk","uwk"],["ưởu","uwv","uwv"],["ưỡu","uww","uww"],["ướu","uwx","uwx"],["ượu","uwh","uwh"],
+    ["ứt","utx","utx"],["ựt","uth","uth"],
+    ["ưu","uuo","uuo"],["ừu","uuk","uuk"],["ửu","uuv","uuv"],["ữu","uuw","uuw"],["ứu","uux","uux"],["ựu","uuh","uuh"],
+    ["y","i","i"],["ỳ","il","il"],["ỷ","iz","iz"],["ỹ","is","is"],["ý","ij","ij"],["ỵ","ir","ir"],
+    ["ỳa","ial","ial"],["ỷa","iaz","iaz"],["ỹa","ias","ias"],["ýa","iaj","iaj"],["ỵa","iar","iar"]
+  ]);
+
+  const PATCH_54 = Object.freeze([
+    ["uyêt","ydy"],["uyết","ydb"],["uyềt","ydd"],["uyểt","ydq"],["uyễt","ydg"],["uyệt","ydf"],
+    ["uyên","yly"],["uyến","ylb"],["uyền","yld"],["uyển","ylq"],["uyễn","ylg"],["uyện","ylf"],
+    ["iêt","idy"],["iết","idb"],["iềt","idd"],["iểt","idq"],["iễt","idg"],["iệt","idf"],
+    ["iêp","ify"],["iếp","ifb"],["iềp","ifd"],["iểp","ifq"],["iễp","ifg"],["iệp","iff"],
+    ["iêc","isy"],["iếc","isb"],["iềc","isd"],["iểc","isq"],["iễc","isg"],["iệc","isf"],
+    ["iên","ily"],["iến","ilb"],["iền","ild"],["iển","ilq"],["iễn","ilg"],["iện","ilf"],
+    ["iêm","ivy"],["iếm","ivb"],["iềm","ivd"],["iểm","ivq"],["iễm","ivg"],["iệm","ivf"],
+    ["iêng","izy"],["iếng","izb"],["iềng","izd"],["iểng","izq"],["iễng","izg"],["iệng","izf"],
+    ["iêu","iwy"],["iếu","iwb"],["iều","iwd"],["iểu","iwq"],["iễu","iwg"],["iệu","iwf"],
+    ["yêt","idy"],["yết","idb"],["yềt","idd"],["yểt","idq"],["yễt","idg"],["yệt","idf"],
+    ["yên","ily"],["yến","ilb"],["yền","ild"],["yển","ilq"],["yễn","ilg"],["yện","ilf"],
+    ["yêm","ivy"],["yếm","ivb"],["yềm","ivd"],["yểm","ivq"],["yễm","ivg"],["yệm","ivf"],
+    ["yêng","izy"],["yếng","izb"],["yềng","izd"],["yểng","izq"],["yễng","izg"],["yệng","izf"],
+    ["yêu","iwy"],["yếu","iwb"],["yều","iwd"],["yểu","iwq"],["yễu","iwg"],["yệu","iwf"],
+    ["uôt","udy"],["uốt","udb"],["uồt","udd"],["uổt","udq"],["uỗt","udg"],["uột","udf"],
+    ["uôc","usy"],["uốc","usb"],["uồc","usd"],["uổc","usq"],["uỗc","usg"],["uộc","usf"],
+    ["uôn","uly"],["uốn","ulb"],["uồn","uld"],["uổn","ulq"],["uỗn","ulg"],["uộn","ulf"],
+    ["uôm","uvy"],["uốm","uvb"],["uồm","uvd"],["uổm","uvq"],["uỗm","uvg"],["uộm","uvf"],
+    ["uông","uzy"],["uống","uzb"],["uồng","uzd"],["uổng","uzq"],["uỗng","uzg"],["uộng","uzf"],
+    ["uôi","ujy"],["uối","ujb"],["uồi","ujd"],["uổi","ujq"],["uỗi","ujg"],["uội","ujf"],
+    ["ươt","udo"],["ướt","udx"],["ườt","udk"],["ưởt","udv"],["ưỡt","udw"],["ượt","udh"],
+    ["ươp","ufo"],["ướp","ufx"],["ườp","ufk"],["ưởp","ufv"],["ưỡp","ufw"],["ượp","ufh"],
+    ["ươc","uso"],["ước","usx"],["ườc","usk"],["ưởc","usv"],["ưỡc","usw"],["ược","ush"],
+    ["ươn","ulo"],["ướn","ulx"],["ườn","ulk"],["ưởn","ulv"],["ưỡn","ulw"],["ượn","ulh"],
+    ["ươm","uvo"],["ướm","uvx"],["ườm","uvk"],["ưởm","uvv"],["ưỡm","uvw"],["ượm","uvh"],
+    ["ương","uzo"],["ướng","uzx"],["ường","uzk"],["ưởng","uzv"],["ưỡng","uzw"],["ượng","uzh"],
+    ["ươu","uwo"],["ướu","uwx"],["ườu","uwk"],["ưởu","uwv"],["ưỡu","uww"],["ượu","uwh"],
+    ["ươi","ujo"],["ưới","ujx"],["ười","ujk"],["ưởi","ujv"],["ưỡi","ujw"],["ượi","ujh"],
+    ["uât","ady"],["uất","adb"],["uầt","add"],["uẩt","adq"],["uẫt","adg"],["uật","adf"],
+    ["uân","aly"],["uấn","alb"],["uần","ald"],["uẩn","alq"],["uẫn","alg"],["uận","alf"],
+    ["uâng","azy"],["uấng","azb"],["uầng","azd"],["uẩng","azq"],["uẫng","azg"],["uậng","azf"],
+    ["uây","ajy"],["uấy","ajb"],["uầy","ajd"],["uẩy","ajq"],["uẫy","ajg"],["uậy","ajf"],
+    ["uơt","odo"],["uớt","odx"],["uờt","odk"],["uởt","odv"],["uỡt","odw"],["uợt","odh"],
+    ["uơn","olo"],["uớn","olx"],["uờn","olk"],["uởn","olv"],["uỡn","olw"],["uợn","olh"],
+    ["uơi","ojo"],["uới","ojx"],["uời","ojk"],["uởi","ojv"],["uỡi","ojw"],["uợi","ojh"],
+    ["oăt","ado"],["oắt","adx"],["oằt","adk"],["oẳt","adv"],["oẵt","adw"],["oặt","adh"],
+    ["oăp","afo"],["oắp","afx"],["oằp","afk"],["oẳp","afv"],["oẵp","afw"],["oặp","afh"],
+    ["oăc","aso"],["oắc","asx"],["oằc","ask"],["oẳc","asv"],["oẵc","asw"],["oặc","ash"],
+    ["oăn","alo"],["oắn","alx"],["oằn","alk"],["oẳn","alv"],["oẵn","alw"],["oặn","alh"],
+    ["oăm","avo"],["oắm","avx"],["oằm","avk"],["oẳm","avv"],["oẵm","avw"],["oặm","avh"],
+    ["oăng","azo"],["oắng","azx"],["oằng","azk"],["oẳng","azv"],["oẵng","azw"],["oặng","azh"],
+    ["oet","ed"],["oét","edj"],["oèt","edl"],["oẻt","edz"],["oẽt","eds"],["oẹt","edr"],
+    ["oen","elp"],["oén","elj"],["oèn","ell"],["oẻn","elz"],["oẽn","els"],["oẹn","elr"],
+    ["oem","evp"],["oém","evj"],["oèm","evl"],["oẻm","evz"],["oẽm","evs"],["oẹm","evr"],
+    ["oeo","ewp"],["oéo","ewj"],["oèo","ewl"],["oẻo","ewz"],["oẽo","ews"],["oẹo","ewr"],
+    ["oat","od"],["oát","odj"],["oàt","odl"],["oảt","odz"],["oãt","ods"],["oạt","odr"],
+    ["oap","of"],["oáp","ofj"],["oàp","ofl"],["oảp","ofz"],["oãp","ofs"],["oạp","ofr"],
+    ["oac","os"],["oác","osj"],["oàc","osl"],["oảc","osz"],["oãc","oss"],["oạc","osr"],
+    ["oan","olp"],["oán","olj"],["oàn","oll"],["oản","olz"],["oãn","ols"],["oạn","olr"],
+    ["oam","ovp"],["oám","ovj"],["oàm","ovl"],["oảm","ovz"],["oãm","ovs"],["oạm","ovr"],
+    ["oang","ozp"],["oáng","ozj"],["oàng","ozl"],["oảng","ozz"],["oãng","ozs"],["oạng","ozr"],
+    ["oao","owp"],["oáo","owj"],["oào","owl"],["oảo","owz"],["oão","ows"],["oạo","owr"],
+    ["oai","ojp"],["oái","ojj"],["oài","ojl"],["oải","ojz"],["oãi","ojs"],["oại","ojr"],
+    ["oay","ajp"],["oáy","ajj"],["oày","ajl"],["oảy","ajz"],["oãy","ajs"],["oạy","ajr"]
+  ]);
+
+  const PATCH_56 = Object.freeze([
+    ["oec","es"],["oéc","esj"],["oèc","esl"],["oẻc","esz"],["oẽc","ess"],["oẹc","esr"],
+    ["oeng","ezp"],["oéng","ezj"],["oèng","ezl"],["oẻng","ezz"],["oẽng","ezs"],["oẹng","ezr"]
+  ]);
+
+  const BASE_VOWEL_GROUPS = Object.freeze([
+    "aàảãáạ","ăằẳẵắặ","âầẩẫấậ","eèẻẽéẹ","êềểễếệ","iìỉĩíị",
+    "oòỏõóọ","ôồổỗốộ","ơờởỡớợ","uùủũúụ","ưừửữứự","yỳỷỹýỵ"
+  ]);
+
+  const INITIAL_PAIRS = Object.freeze([
+    ["ngh","w"],["ng","w"],["ph","f"],["qu","q"],["kh","k"],["gi","j"],["gh","g"],
+    ["k","c"],["d","z"],["đ","d"],["ch","ch"],["nh","nh"],["th","th"],["tr","tr"],
+    ["b","b"],["c","c"],["g","g"],["h","h"],["l","l"],["m","m"],["n","n"],
+    ["r","r"],["s","s"],["t","t"],["v","v"],["x","x"]
+  ]);
+
+  const CANONICAL_PREFERRED = Object.freeze({
+    "oal":"òa","oaz":"ỏa","oas":"õa","oaj":"óa","oar":"ọa",
+    "es":"ẽ","ed":"ề","i":"i","il":"ì","iz":"ỉ","is":"ĩ","ij":"í","ir":"ị",
+    "yl":"ùy","yz":"ủy","ys":"ũy","yj":"úy","yr":"ụy",
+    "ial":"ìa","iaz":"ỉa","ias":"ĩa","iaj":"ía","iar":"ịa",
+    "ivy":"iêm","ivd":"iềm","ivq":"iểm","ivg":"iễm","ivb":"iếm","ivf":"iệm",
+    "ily":"iên","ild":"iền","ilq":"iển","ilg":"iễn","ilb":"iến","ilf":"iện",
+    "izy":"iêng","izd":"iềng","izq":"iểng","izg":"iễng","izb":"iếng","izf":"iệng",
+    "idb":"iết","idf":"iệt",
+    "iwy":"iêu","iwd":"iều","iwq":"iểu","iwg":"iễu","iwb":"iếu","iwf":"iệu",
+    "idy":"iêt","os":"õ","od":"ồ","of":"ộ",
+    "idd":"iềt","idq":"iểt","idg":"iễt"
+  });
+
+  const CRITICAL_COLLISIONS = Object.freeze({
+    "ed":["ề","oet"],"es":["ẽ","oec"],"od":["ồ","oat"],"of":["ộ","oap"],"os":["õ","oac"]
+  });
+
+  const LEGACY_FORWARD_ALIASES = Object.freeze([["yệnh","izf"]]);
+  const I_TO_Y = new Map([["i","y"],["ì","ỳ"],["ỉ","ỷ"],["ĩ","ỹ"],["í","ý"],["ị","ỵ"]]);
+
+  const BASE_CACHE = new Map();
+  const CVN_INITIALS = Object.freeze(INITIAL_PAIRS.slice().sort((a,b)=>b[0].length-a[0].length));
+  const CVN_CODE_INITIALS = Object.freeze(
+    Array.from(new Set(INITIAL_PAIRS.map(([,cvn])=>cvn))).sort((a,b)=>b.length-a.length)
+  );
+  const CQN_TO_CVN_INITIAL = new Map(INITIAL_PAIRS);
+
+  function getBaseVowel(ch = "") {
+    if (!ch) return "";
+    if (BASE_CACHE.has(ch)) return BASE_CACHE.get(ch);
+    const lower = ch.toLocaleLowerCase("vi-VN");
+    for (const group of BASE_VOWEL_GROUPS) {
+      if (group.includes(lower)) { BASE_CACHE.set(ch, group[0]); return group[0]; }
+    }
+    BASE_CACHE.set(ch, lower);
+    return lower;
+  }
+
+  function addCandidate(index, code, cqn, source) {
+    let list = index.get(code);
+    if (!list) { list = []; index.set(code, list); }
+    if (!list.some((e) => e.cqn === cqn)) list.push(Object.freeze({ cqn, source }));
+  }
+
+  function addForward(map, cqn, code, source) {
+    if (!map.has(cqn)) { map.set(cqn, Object.freeze({ code, source })); return; }
+    const prev = map.get(cqn);
+    if (prev.code !== code) {
+      throw new Error(`Conflict for ${cqn}: ${prev.code} vs ${code}`);
+    }
+  }
+
+  function buildIndexes() {
+    const cqnToCvn = new Map(), cqnToCvss = new Map();
+    const cvnCandidates = new Map(), cvssCandidates = new Map();
+    const cvnToCvss = new Map(), cvssToCvn = new Map();
+
+    for (const [cqn, cvn, cvss] of BASE_ROWS) {
+      addForward(cqnToCvn, cqn, cvn, "base");
+      addForward(cqnToCvss, cqn, cvss, "base");
+      addCandidate(cvnCandidates, cvn, cqn, "base");
+      addCandidate(cvssCandidates, cvss, cqn, "base");
+      if (!cvnToCvss.has(cvn)) cvnToCvss.set(cvn, cvss);
+      if (!cvssToCvn.has(cvss)) cvssToCvn.set(cvss, cvn);
+    }
+    for (const [cqn, code] of LEGACY_FORWARD_ALIASES) {
+      addForward(cqnToCvn, cqn, code, "legacy");
+      addForward(cqnToCvss, cqn, code, "legacy");
+    }
+    const applyPatch = (rows, src) => {
+      for (const [cqn, code] of rows) {
+        addForward(cqnToCvn, cqn, code, src);
+        addForward(cqnToCvss, cqn, code, src);
+        addCandidate(cvnCandidates, code, cqn, src);
+        addCandidate(cvssCandidates, code, cqn, src);
+        if (!cvnToCvss.has(code)) cvnToCvss.set(code, code);
+        if (!cvssToCvn.has(code)) cvssToCvn.set(code, code);
+      }
+    };
+    applyPatch(PATCH_54, "patch54");
+    applyPatch(PATCH_56, "patch56");
+    return Object.freeze({ cqnToCvn, cqnToCvss, cvnCandidates, cvssCandidates, cvnToCvss, cvssToCvn });
+  }
+
+  const INDEX = buildIndexes();
+
+  function isAllUpper(word) {
+    return /\p{L}/u.test(word) && word === word.toLocaleUpperCase("vi-VN");
+  }
+  function applyCase(src, val) {
+    if (!val) return val;
+    if (isAllUpper(src)) return val.toLocaleUpperCase("vi-VN");
+    const f = src[0] || "";
+    if (f === f.toLocaleUpperCase("vi-VN") && f !== f.toLocaleLowerCase("vi-VN")) {
+      return val[0].toLocaleUpperCase("vi-VN") + val.slice(1);
+    }
+    return val;
+  }
+  function tokenize(input) {
+    return String(input ?? "").normalize("NFC").match(/[\p{L}]+|[^\p{L}]+/gu) || [];
+  }
+  function splitCqnWord(word) {
+    const lower = word.toLocaleLowerCase("vi-VN").normalize("NFC");
+    for (const [initial] of CVN_INITIALS) {
+      if (lower.startsWith(initial)) return { initial, vowel: lower.slice(initial.length) };
+    }
+    return { initial: "", vowel: lower };
+  }
+  function normalizeCqnParts(initial, vowel) {
+    let onset = initial, v = vowel;
+    if (onset === "gi" && v !== "a" && INDEX.cqnToCvn.has("i" + v)) v = "i" + v;
+    if (onset === "qu" && getBaseVowel(v[0]) === "y") v = "u" + v;
+    if (onset === "g" && getBaseVowel(v[0]) === "i") onset = "gi";
+    if (onset === "g" && "eê".includes(getBaseVowel(v[0]))) onset = "gh";
+    if (onset === "c" && "iêe".includes(getBaseVowel(v[0]))) onset = "k";
+    if (onset === "ng" && "iêe".includes(getBaseVowel(v[0]))) onset = "ngh";
+    return { initial: onset, vowel: v };
+  }
+  function restoreCqnInitial(cvnInitial, cqnVowel) {
+    const base = getBaseVowel(cqnVowel[0]);
+    if (cvnInitial === "q") return "qu";
+    if (cvnInitial === "j") return "gi";
+    if (cvnInitial === "z") return "d";
+    if (cvnInitial === "d") return "đ";
+    if (cvnInitial === "f") return "ph";
+    if (cvnInitial === "k") return "kh";
+    if (cvnInitial === "w") return "iêe".includes(base) ? "ngh" : "ng";
+    if (cvnInitial === "g") return "iêe".includes(base) ? "gh" : "g";
+    if (cvnInitial === "c") return "iêe".includes(base) ? "k" : "c";
+    return cvnInitial;
+  }
+  function cleanCqnAfterJoin(initial, vowel) {
+    let onset = initial, v = vowel;
+    if (!onset && I_TO_Y.has(v[0]) && !v.startsWith("ia")) v = I_TO_Y.get(v[0]) + v.slice(1);
+    if (onset === "gi" && getBaseVowel(v[0]) === "i") {
+      if (/^[iìỉĩíị](?:m|n|p|t|c|ch|ng|nh)?$/u.test(v)) return "g" + v;
+      v = v.slice(1) || v;
+    }
+    if (onset === "qu" && getBaseVowel(v[0]) === "u" && v.length > 1) v = v.slice(1);
+    return onset + v;
+  }
+  function cqnToCvnAndCvss(word) {
+    const split = splitCqnWord(word);
+    const norm = normalizeCqnParts(split.initial, split.vowel);
+    const cvnInitial = CQN_TO_CVN_INITIAL.get(norm.initial) ?? norm.initial;
+    const cvnVowel = INDEX.cqnToCvn.get(norm.vowel)?.code ?? norm.vowel;
+    const cvssVowel = INDEX.cqnToCvss.get(norm.vowel)?.code ?? cvnVowel;
+    return Object.freeze({
+      cqn: applyCase(word, word.normalize("NFC")),
+      cvn: applyCase(word, cvnInitial + cvnVowel),
+      cvss: applyCase(word, cvnInitial + cvssVowel)
+    });
+  }
+  function splitCodeWord(word, candidateIndex) {
+    const lower = word.toLocaleLowerCase("vi-VN").normalize("NFC");
+    if (candidateIndex.has(lower)) return { initial: "", codeVowel: lower };
+    for (const initial of CVN_CODE_INITIALS) {
+      if (!lower.startsWith(initial)) continue;
+      const rest = lower.slice(initial.length);
+      if (rest && candidateIndex.has(rest)) return { initial, codeVowel: rest };
+    }
+    for (const initial of CVN_CODE_INITIALS) {
+      if (lower.startsWith(initial)) return { initial, codeVowel: lower.slice(initial.length) };
+    }
+    return { initial: "", codeVowel: lower };
+  }
+  function chooseCqnVowel(codeVowel, candidates) {
+    if (!candidates || candidates.length === 0) return codeVowel;
+    if (candidates.length === 1) return candidates[0].cqn;
+    const pref = CANONICAL_PREFERRED[codeVowel];
+    if (pref && candidates.some((e) => e.cqn === pref)) return pref;
+    return candidates[0].cqn;
+  }
+  function buildCqnWord(cvnInitial, cqnVowel) {
+    const cqnInit = restoreCqnInitial(cvnInitial, cqnVowel);
+    return cleanCqnAfterJoin(cqnInit, cqnVowel);
+  }
+  function codeToCqnAndOther(word, source) {
+    const isCvss = source === "cvss";
+    const candidatesIndex = isCvss ? INDEX.cvssCandidates : INDEX.cvnCandidates;
+    const toOther = isCvss ? INDEX.cvssToCvn : INDEX.cvnToCvss;
+    const { initial, codeVowel } = splitCodeWord(word, candidatesIndex);
+    const candidates = candidatesIndex.get(codeVowel) || [];
+    const cqnVowel = chooseCqnVowel(codeVowel, candidates);
+    const otherVowel = toOther.get(codeVowel) ?? codeVowel;
+    const cqn = buildCqnWord(initial, cqnVowel);
+    const originalCode = initial + codeVowel;
+    const other = initial + otherVowel;
+    if (isCvss) {
+      return Object.freeze({
+        cqn: applyCase(word, cqn),
+        cvn: applyCase(word, other),
+        cvss: applyCase(word, originalCode)
+      });
+    }
+    return Object.freeze({
+      cqn: applyCase(word, cqn),
+      cvn: applyCase(word, originalCode),
+      cvss: applyCase(word, other)
+    });
+  }
+  function cvnToCqnAndCvss(word) { return codeToCqnAndOther(word, "cvn"); }
+  function cvssToCqnAndCvn(word) { return codeToCqnAndOther(word, "cvss"); }
+
+  function convertText(input, mode = "cqn") {
+    if (!["cqn","cvn","cvss"].includes(mode)) {
+      throw new Error('Mode không hợp lệ.');
+    }
+    const result = { cqn: [], cvn: [], cvss: [] };
+    for (const token of tokenize(input)) {
+      if (!/^[\p{L}]+$/u.test(token)) {
+        result.cqn.push(token); result.cvn.push(token); result.cvss.push(token);
+        continue;
+      }
+      const converted = mode === "cqn" ? cqnToCvnAndCvss(token)
+                      : mode === "cvn" ? cvnToCqnAndCvss(token)
+                      : cvssToCqnAndCvn(token);
+      result.cqn.push(converted.cqn);
+      result.cvn.push(converted.cvn);
+      result.cvss.push(converted.cvss);
+    }
+    return Object.freeze({
+      cqn: result.cqn.join(""),
+      cvn: result.cvn.join(""),
+      cvss: result.cvss.join("")
+    });
+  }
+
+  function audit() {
+    let groups = 0, maxC = 0;
+    for (const entries of INDEX.cvssCandidates.values()) {
+      if (entries.length > 1) groups += 1;
+      if (entries.length > maxC) maxC = entries.length;
+    }
+    return Object.freeze({
+      version: VERSION,
+      baseRows: BASE_ROWS.length,
+      totalPatchEntries: PATCH_54.length + PATCH_56.length,
+      ambiguityGroups: groups,
+      explicitCanonicalPolicies: Object.keys(CANONICAL_PREFERRED).length,
+      criticalCollisionGroups: Object.keys(CRITICAL_COLLISIONS).length,
+      maxCandidateCount: maxC,
+      silentReverseOverwrite: 0
+    });
+  }
+
+  function selfTest() {
+    const tests = [
+      ["toiy","tôi"],["iwy","yêu"],["vidf","việt"],["ily","yên"],["idb","yết"],
+      ["tizb","tiếng"],["wizy","nghiêng"],["ses","sẽ"],["hed","hề"],
+      ["mod","mồ"],["mof","mộ"],["vos","võ"]
+    ];
+    const failures = [];
+    for (const [code, expected] of tests) {
+      const actual = convertText(code, "cvss").cqn;
+      if (actual !== expected) failures.push({ code, expected, actual });
+    }
+    return Object.freeze({ ok: failures.length === 0, tests: tests.length, failures });
+  }
+
+  return Object.freeze({
+    VERSION, convert: convertText,
+    fromCqn: (i) => convertText(i, "cqn"),
+    fromCvn: (i) => convertText(i, "cvn"),
+    fromCvss: (i) => convertText(i, "cvss"),
+    audit: () => audit(),
+    selfTest
+  });
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CHAT LOGIC
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  "use strict";
+
+  const CVN = window.CVNSSConverter;
+  if (!CVN) { console.error("CVNSSConverter not loaded"); return; }
+
+  // ── Cấu hình ──────────────────────────────────────────────────
+  const API_KEY  = "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";
+  const MODEL    = "deepseek/deepseek-v4-pro-0813";
+  const API_URL  = "https://openrouter.ai/api/v1/chat/completions";
+  const MAX_TOK  = 4096;
+  const TIMEOUT  = 20000;
+
+  // Headers: chỉ ASCII, ISO-8859-1 an toàn
+  const HEADERS = {
+    "Content-Type":  "application/json",
+    "Authorization": "Bearer " + API_KEY,
+    "HTTP-Referer":  "https://localhost",
+    "X-Title":       "AI CVNSS4.0"
+  };
+
+  // ── DOM ───────────────────────────────────────────────────────
+  const chatEl   = document.getElementById("chat");
+  const emptyEl  = document.getElementById("empty");
+  const inputEl  = document.getElementById("input");
+  const sendBtn  = document.getElementById("send");
+  const clearBtn = document.getElementById("clearBtn");
+  const modeBtn  = document.getElementById("modeBtn");
+  const modeLbl  = document.getElementById("modeLabel");
+
+  // ── State ─────────────────────────────────────────────────────
+  let mode = "auto"; // auto | api | offline
+  let history = [{ role: "system", content: "Bạn là trợ lý AI hữu ích, trả lời ngắn gọn bằng tiếng Việt." }];
+  let busy = false;
+
+  // ── Helpers ───────────────────────────────────────────────────
+  const enc = (t) => { try { return CVN.convert(t, "cqn").cvss; } catch { return ""; } };
+  const dec = (t) => { try { return CVN.convert(t, "cvss").cqn; } catch { return ""; } };
+  const isCode = (t) => {
+    const s = t.trim();
+    if (!s) return false;
+    if (/[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(s)) return false;
+    return /^[a-z\s]+$/i.test(s);
+  };
+
+  // ── Mode switch ───────────────────────────────────────────────
+  function setMode(next) {
+    mode = next;
+    modeBtn.className = "btn " + (
+      mode === "auto" ? "mode-auto" :
+      mode === "api"  ? "mode-api"  : "mode-offline"
+    );
+    modeLbl.textContent =
+      mode === "auto" ? "Auto" :
+      mode === "api"  ? "API"  : "Offline";
+    modeBtn.title =
+      mode === "auto" ? "Auto: thử API, lỗi thì chuyển Offline" :
+      mode === "api"  ? "Chỉ dùng API" :
+                        "Chỉ chạy converter CVNSS4.0 cục bộ";
+  }
+  setMode("auto");
+  modeBtn.addEventListener("click", () => {
+    setMode(mode === "auto" ? "api" : mode === "api" ? "offline" : "auto");
+  });
+
+  // ── Input ─────────────────────────────────────────────────────
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  });
+  inputEl.addEventListener("input", () => {
+    inputEl.style.height = "auto";
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + "px";
+  });
+  sendBtn.addEventListener("click", handleSend);
+
+  clearBtn.addEventListener("click", () => {
+    history = [{ role: "system", content: "Bạn là trợ lý AI hữu ích, trả lời ngắn gọn bằng tiếng Việt." }];
+    chatEl.innerHTML = "";
+    chatEl.appendChild(emptyEl);
+    emptyEl.style.display = "flex";
+    inputEl.focus();
+  });
+
+  // Empty-state chips
+  document.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      inputEl.value = chip.dataset.prompt;
+      handleSend();
+    });
+  });
+
+  // ── Rendering ─────────────────────────────────────────────────
+  function hideEmpty() {
+    if (emptyEl.style.display !== "none") emptyEl.style.display = "none";
+  }
+
+  function addUserMessage(text) {
+    hideEmpty();
+    const el = document.createElement("div");
+    el.className = "msg user";
+    el.innerHTML = `
+      <div class="head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Bạn
+      </div>
+      <div class="bubble"></div>`;
+    el.querySelector(".bubble").textContent = text;
+    chatEl.appendChild(el);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  function addAssistantShell() {
+    hideEmpty();
+    const el = document.createElement("div");
+    el.className = "msg assistant";
+    el.innerHTML = `
+      <div class="head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="10" rx="2"/>
+          <circle cx="12" cy="16" r="2"/>
+          <path d="M12 11V7"/>
+          <circle cx="12" cy="5" r="2"/>
+        </svg>
+        AI
+      </div>
+      <div class="bubble">
+        <details class="reason streaming" open>
+          <summary>
+            <svg class="brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9.5 2A2.5 2.5 0 0 0 7 4.5v.5a3 3 0 0 0-2 2.83V10a3 3 0 0 0 1 2.24V14a3 3 0 0 0 3 3h1v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2v-2h1a3 3 0 0 0 3-3v-1.76A3 3 0 0 0 19 10V7.83A3 3 0 0 0 17 5v-.5A2.5 2.5 0 0 0 14.5 2h-5z"/>
+              <path d="M9 7h1"/>
+              <path d="M14 7h1"/>
+              <path d="M9.5 11h5"/>
+              <path d="M12 11v4"/>
+            </svg>
+            <span class="label">Reasoning · CVNSS4.0</span>
+            <span class="status">đang suy luận</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </summary>
+          <pre></pre>
+        </details>
+        <div class="answer"><span class="typing-cursor"></span></div>
+      </div>`;
+    chatEl.appendChild(el);
+    chatEl.scrollTop = chatEl.scrollHeight;
+    return {
+      root:   el,
+      reason: el.querySelector(".reason"),
+      status: el.querySelector(".status"),
+      pre:    el.querySelector(".reason pre"),
+      answer: el.querySelector(".answer")
+    };
+  }
+
+  // ── API stream ────────────────────────────────────────────────
+  function extractReasoning(chunk) {
+    const d = chunk.choices?.[0]?.delta || {};
+    if (typeof d.reasoning === "string" && d.reasoning) return d.reasoning;
+    if (typeof d.reasoning_content === "string" && d.reasoning_content) return d.reasoning_content;
+    if (Array.isArray(d.reasoning_details)) {
+      return d.reasoning_details.map(x => x.text || x.content || "").join("");
+    }
+    const m = chunk.choices?.[0]?.message;
+    if (m) {
+      if (typeof m.reasoning === "string" && m.reasoning) return m.reasoning;
+      if (typeof m.reasoning_content === "string" && m.reasoning_content) return m.reasoning_content;
+      if (Array.isArray(m.reasoning_details)) {
+        return m.reasoning_details.map(x => x.text || x.content || "").join("");
+      }
+    }
+    return "";
+  }
+
+  async function callApi(ui, signal) {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      signal,
+      headers: HEADERS,
+      body: JSON.stringify({
+        model: MODEL,
+        stream: true,
+        reasoning: { enabled: true },
+        max_tokens: MAX_TOK,
+        messages: history
+      })
+    });
+
+    if (!res.ok || !res.body) {
+      const t = await res.text().catch(() => "");
+      throw new Error(`HTTP ${res.status} ${t}`);
+    }
+
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer    = "";
+    let rawReason = "";
+    let content   = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t.startsWith("data:")) continue;
+        const data = t.slice(5).trim();
+        if (data === "[DONE]") continue;
+
+        try {
+          const json = JSON.parse(data);
+          const delta = json.choices?.[0]?.delta;
+          if (!delta) continue;
+
+          if (delta.content) {
+            content += delta.content;
+            ui.answer.textContent = content;
+          }
+
+          const rc = extractReasoning(json);
+          if (rc) {
+            rawReason += rc;
+            ui.pre.textContent = enc(rawReason);
+          }
+        } catch (_) { /* skip bad line */ }
+      }
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    if (!content) content = "(Không có phản hồi)";
+    ui.answer.textContent = content;
+    ui.reason.classList.remove("streaming");
+    ui.reason.classList.add("done");
+    ui.status.textContent = "hoàn tất";
+    return content;
+  }
+
+  // ── Offline converter ─────────────────────────────────────────
+  function runOffline(ui, text, reason) {
+    const code = isCode(text);
+    const encoded = code ? text : enc(text);
+    const decoded = code ? dec(text) : text;
+
+    const reasonLines = [
+      "// OFFLINE MODE",
+      "// Lý do: " + reason,
+      "",
+      code ? "// Input  (mã CVNSS4.0): " + text
+           : "// Input  (tiếng Việt):  " + text,
+      code ? "// Output (tiếng Việt):  " + (decoded || "?")
+           : "// Output (mã CVNSS4.0): " + (encoded || "?")
+    ];
+    ui.pre.textContent = reasonLines.join("\n");
+
+    const answerLines = code
+      ? ["Đã giải mã mã CVNSS4.0 thành tiếng Việt:", "", decoded || "(không giải mã được)"]
+      : ["Đã mã hoá tiếng Việt thành CVNSS4.0:", "", encoded || "(không mã hoá được)"];
+    ui.answer.textContent = answerLines.join("\n");
+    ui.reason.classList.remove("streaming");
+    ui.reason.classList.add("done");
+    ui.status.textContent = "offline";
+  }
+
+  function runOfflineError(ui, errMsg) {
+    ui.pre.textContent = "// API ERROR\n// " + errMsg;
+    ui.answer.innerHTML = `<span class="err-line">⚠️ Không kết nối được API.</span>\n\n<code>${errMsg}</code>`;
+    ui.reason.classList.remove("streaming");
+    ui.reason.classList.add("done");
+    ui.status.textContent = "lỗi";
+  }
+
+  // ── Main ──────────────────────────────────────────────────────
+  async function handleSend() {
+    if (busy) return;
+    const text = inputEl.value.trim();
+    if (!text) return;
+
+    addUserMessage(text);
+    inputEl.value = "";
+    inputEl.style.height = "auto";
+    inputEl.focus();
+
+    const ui = addAssistantShell();
+    busy = true;
+    sendBtn.disabled = true;
+
+    if (mode === "offline") {
+      runOffline(ui, text, "Chế độ Offline được chọn.");
+      busy = false; sendBtn.disabled = false;
+      return;
+    }
+
+    history.push({ role: "user", content: text });
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT);
+
+    try {
+      const content = await callApi(ui, controller.signal);
+      clearTimeout(timer);
+      history.push({ role: "assistant", content });
+    } catch (err) {
+      clearTimeout(timer);
+      const isTimeout = err.name === "AbortError";
+      const msg = isTimeout ? `Timeout ${TIMEOUT / 1000}s` : String(err.message || err);
+
+      if (mode === "api") {
+        runOfflineError(ui, msg);
+      } else {
+        runOffline(ui, text, "API lỗi → tự động chuyển Offline. (" + msg + ")");
+      }
+    } finally {
+      busy = false;
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+
+  // ── Debug ─────────────────────────────────────────────────────
+  window.__cvnss = { CVN, enc, dec, selfTest: CVN.selfTest };
+  console.log("CVNSS4.0 ready.", CVN.audit());
+})();
+</script>
+
+
+</body></html>
