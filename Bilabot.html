@@ -116,7 +116,7 @@ var CVN=window.CVNSSConverter;
 function q(s,r){return (r||document).querySelector(s)}
 function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
 var E={app:q("#app"),chat:q("#chat"),hero:q("#hero"),input:q("#input"),send:q("#send"),menu:q("#menuBtn"),pill:q("#pill"),providerText:q("#providerText"),settings:q("#settings"),project:q("#project"),form:q("#settingsForm"),provider:q("#provider"),model:q("#model"),endpoint:q("#endpoint"),key:q("#apiKey"),keyField:q("#keyField"),max:q("#maxTokens"),speed:q("#speed"),reasoning:q("#reasoning"),toast:q("#toast"),coreMeta:q("#coreMeta"),coreVer:q("#coreVer"),coreBar:q("#coreBar"),coreLed:q("#coreLed"),audit:q("#audit")};
-var PROVIDERS={deepseek:{label:"DeepSeek",endpoint:"https://api.deepseek.com/chat/completions",model:"deepseek-chat",key:true},openrouter:{label:"OpenRouter",endpoint:"https://openrouter.ai/api/v1/chat/completions",model:"deepseek/deepseek-v4.1-flash:nitro",key:true},proxy:{label:"Backend Proxy",endpoint:"/api/chat",model:"deepseek/deepseek-v4.1-flash",key:false}};
+var PROVIDERS={deepseek:{label:"DeepSeek",endpoint:"https://api.deepseek.com/chat/completions",model:"deepseek-flash",key:true},openrouter:{label:"OpenRouter",endpoint:"https://openrouter.ai/api/v1/chat/completions",model:"deepseek/deepseek-v4.1-flash:nitro",key:true},proxy:{label:"Backend Proxy",endpoint:"/api/chat",model:"deepseek/deepseek-v4.1-flash",key:false}};
 var DEF={provider:"openrouter",endpoint:PROVIDERS.openrouter.endpoint,model:PROVIDERS.openrouter.model,key:"",max:1536,speed:"instant",reasoning:true};
 var cfg=loadCfg(),busy=false,controller=null,history=[{role:"system",content:"Bạn là Bilabot. Trả lời cuối cùng bằng tiếng Việt Unicode chuẩn, rõ ràng và hữu ích. Không dùng CVNSS4.0 trong câu trả lời cuối trừ khi người dùng hỏi trực tiếp về CVNSS4.0."}];
 
@@ -137,7 +137,25 @@ function initCore(){
 }
 function fill(){E.provider.value=cfg.provider;E.model.value=cfg.model;E.endpoint.value=cfg.endpoint;E.key.value=cfg.key||"";E.max.value=cfg.max;E.speed.value=cfg.speed||"instant";E.reasoning.value=cfg.reasoning?"on":"off";E.keyField.style.display=(PROVIDERS[cfg.provider]||PROVIDERS.deepseek).key?"grid":"none"}
 function updatePill(){var p=PROVIDERS[cfg.provider]||PROVIDERS.deepseek,ready=cfg.provider==="proxy"?!!cfg.endpoint:!!(cfg.endpoint&&cfg.key);E.providerText.textContent=ready?p.label+" · "+(cfg.speed==="instant"?"⚡ Fast":cfg.speed==="deep"?"Deep":"Balanced"):"Chưa cấu hình API";E.pill.classList.toggle("ready",ready)}
-function setProvider(force){var p=PROVIDERS[E.provider.value]||PROVIDERS.deepseek;if(force||!E.endpoint.value)E.endpoint.value=p.endpoint;if(force||!E.model.value)E.model.value=p.model;E.keyField.style.display=p.key?"grid":"none"}
+function isOpenRouterKey(k){return /^sk-or-v1-/i.test(String(k||"").trim())}
+function setProvider(force){
+ var p=PROVIDERS[E.provider.value]||PROVIDERS.deepseek;
+ if(force||!E.endpoint.value)E.endpoint.value=p.endpoint;
+ if(force||!E.model.value)E.model.value=p.model;
+ E.keyField.style.display=p.key?"grid":"none";
+ E.key.placeholder=E.provider.value==="openrouter"?"sk-or-v1-…":E.provider.value==="deepseek"?"DeepSeek API key":"Không cần key ở trình duyệt"
+}
+function normalizeProviderByKey(){
+ var k=E.key.value.trim();
+ if(isOpenRouterKey(k)&&E.provider.value!=="openrouter"){
+  E.provider.value="openrouter";
+  setProvider(true);
+  E.key.value=k;
+  toast("Đã nhận diện OpenRouter key và chuyển provider sang OpenRouter");
+  return true
+ }
+ return false
+}
 
 function addUser(text){E.hero.style.display="none";var n=document.createElement("article");n.className="msg user";n.innerHTML='<div class="meta">Bạn · Unicode</div><div class="userbubble"></div>';q(".userbubble",n).textContent=text;E.chat.appendChild(n);bottom()}
 function addAssistant(){
@@ -175,7 +193,16 @@ async function stream(u){
  var res;
  try{res=await fetch(cfg.endpoint,{method:"POST",headers:headers(),body:JSON.stringify(body()),signal:controller.signal})}
  catch(e){clearTimeout(timeout);throw e}
- if(!res.ok){clearTimeout(timeout);var tx=await res.text().catch(function(){return""});throw new Error("HTTP "+res.status+(tx?" · "+tx.slice(0,220):""))}
+ if(!res.ok){
+ clearTimeout(timeout);
+ var tx=await res.text().catch(function(){return""});
+ if(res.status===401){
+  if(isOpenRouterKey(cfg.key)&&/api\.deepseek\.com/i.test(cfg.endpoint))throw new Error("HTTP 401 · OpenRouter key đang được gửi nhầm tới DeepSeek API. Hãy chọn OpenRouter; Bilabot sẽ dùng https://openrouter.ai/api/v1/chat/completions.");
+  if(isOpenRouterKey(cfg.key)&&/openrouter\.ai/i.test(cfg.endpoint))throw new Error("HTTP 401 · OpenRouter từ chối key này. Hãy tạo/rotate key mới trong OpenRouter rồi nhập lại.");
+  throw new Error("HTTP 401 · Provider từ chối API key. Kiểm tra key có thuộc đúng provider hay không.")
+ }
+ throw new Error("HTTP "+res.status+(tx?" · "+tx.slice(0,220):""))
+}
  if(!res.body){clearTimeout(timeout);throw new Error("Provider không trả streaming body.")}
 
  var reader=res.body.getReader(),decoder=new TextDecoder(),buf="",content="",encodedReason="",reasonTail="",raf=0,answerDirty=false,reasonDirty=false,hasReason=false;
@@ -233,9 +260,9 @@ function resetChat(){if(controller)controller.abort();history=[history[0]];qa(".
 
 q("#settingsBtn").onclick=function(){fill();E.settings.showModal()};E.pill.onclick=function(){fill();E.settings.showModal()};q("#projectBtn").onclick=function(){E.project.showModal()};q("#newBtn").onclick=resetChat;E.menu.onclick=function(){E.app.classList.toggle("open")};
 qa("[data-close]").forEach(function(b){b.onclick=function(){q("#"+b.getAttribute("data-close")).close()}});
-E.provider.onchange=function(){setProvider(true)};
+E.provider.onchange=function(){setProvider(true)};E.key.addEventListener("input",function(){if(isOpenRouterKey(E.key.value))normalizeProviderByKey()});
 q("#resetCfg").onclick=function(){cfg=Object.assign({},DEF);fill();toast("Đã khôi phục mặc định")};
-E.form.onsubmit=function(ev){ev.preventDefault();cfg={provider:E.provider.value,endpoint:E.endpoint.value.trim(),model:E.model.value.trim(),key:E.key.value.trim(),max:Math.min(32768,Math.max(256,Number(E.max.value)||1536)),speed:E.speed.value||"instant",reasoning:E.reasoning.value==="on"};saveCfg();updatePill();E.settings.close();toast("Đã lưu cấu hình cho phiên hiện tại")};
+E.form.onsubmit=function(ev){ev.preventDefault();normalizeProviderByKey();cfg={provider:E.provider.value,endpoint:E.endpoint.value.trim(),model:E.model.value.trim(),key:E.key.value.trim(),max:Math.min(32768,Math.max(256,Number(E.max.value)||1536)),speed:E.speed.value||"instant",reasoning:E.reasoning.value==="on"};saveCfg();updatePill();E.settings.close();toast("Đã lưu cấu hình cho phiên hiện tại")};
 E.input.oninput=grow;E.input.onkeydown=function(ev){if(ev.key==="Enter"&&!ev.shiftKey){ev.preventDefault();send()}};E.send.onclick=function(){send()};
 qa(".chip").forEach(function(b){b.onclick=function(){send(b.getAttribute("data-prompt"))}});
 document.addEventListener("keydown",function(ev){if(ev.key==="Escape")E.app.classList.remove("open")});
